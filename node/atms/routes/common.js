@@ -21,7 +21,9 @@ if(itemType == 'CF') query = 'delete from atms.tblfitnesscert where fitness_cert
 if(itemType == 'NP') query = 'delete from atms.tblntlpermit where national_permit_id = ?';
 
 if(itemType == 'Tax') query = 'delete from atms.tbltaxpayment where tax_payment_id = ?';
-	
+
+if(itemType == 'VEH') query = 'delete from atms.tblvehicle where record_id = ?';
+
 db2.query(query , param, function(err, result) {
 	
    resp = (err === null) ? { status: 'S'} : { status: 'E', details : err.toString(), code : err.code } ;
