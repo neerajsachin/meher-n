@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
+var http = require('http');
 
+//var parseString = require('xml2js').parseString;
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   res.send('common home page');
@@ -64,6 +66,87 @@ db2.query('delete from atms.tbltaxpayment where  ?' , param, function(err, resul
 
 }
 
+
+
+//http://t.onetouchsms.in/sendsms.jsp?user=sachin&password=sachin&mobiles=9711520093&sms=hello&senderid=RTOSKA&version=3
+
+
+router.post('/sendSMSDVP', function(req, res) {
+
+var remaining = req.body.remaining;
+var vehicleList = req.body.vehicleList.map(function(obj){
+return obj.slice(-7).replace('/','');
+
+}) ; 
+var postVehicleListText = (remaining > 0)? ' and ' + remaining +' more..': '';
+
+
+
+var duration = req.body.duration;
+var resp = {};
+var param = {};
+var mobiles = null;
+param.company_id = req.body.company_id;
+
+req.db2.query('select sms_alert_no, sms_alert_no2 from atms.tblcompany where ?' , param, function(err, result){
+  console.log(JSON.stringify(result));
+  
+var sms_alert_no = (!result[0].sms_alert_no || result[0].sms_alert_no === 'null' ) ? null : result[0].sms_alert_no ;
+var sms_alert_no2 = (!result[0].sms_alert_no2 || result[0].sms_alert_no2 === 'null' ) ? null : result[0].sms_alert_no2 ;
+
+if(!sms_alert_no && !sms_alert_no2 ) {
+ resp.status = 'E';
+ resp.code = 'PHONE_NOT_FOUND';
+  res.send(resp);
+  return;
+}
+
+if(sms_alert_no && !sms_alert_no2 ) {
+ mobiles = sms_alert_no;
+};
+if(!sms_alert_no && sms_alert_no2 ) {
+ mobiles = sms_alert_no2;
+};
+if(sms_alert_no && sms_alert_no2 ) {
+ mobiles = sms_alert_no + ',' + sms_alert_no2;
+}
+
+var text = escape('Kind Attn! Docs of vehs nos ' + vehicleList.toString() + postVehicleListText + ' expiring within ' + duration + ' days.Pls call us for renewal. Rgds, Surinderkragarwal@gmail.com, 9954080000, 9435103190'  );
+//text = encodeURI(text);
+var options = {
+  host: 't.onetouchsms.in',
+  port: 80,
+  path: '/sendsms.jsp?user=sachin&password=sachin&senderid=RTOSKA&version=3&mobiles=' + mobiles + '&sms=' + text,
+  method: 'GET'
+};
+
+
+http.request(options, function(res) {
+  console.log('SMS status: ' + res.statusCode);
+  //console.log('HEADERS: ' + JSON.stringify(res.headers));
+  res.setEncoding('utf8');
+  res.on('data', function (chunk) {
+    //console.log('BODY: ' + chunk);
+  });
+}).end(); 
+res.send({status:'S'});
+updateSMSSentStatus(req.db2, param.company_id);
+}) ;
+
+
+});
+
+
+function updateSMSSentStatus (db,company_id) {
+
+var today = new Date(); 
+param = [today, company_id];
+db.query('update atms.tblcompany set last_sms_dvp = ? where company_id = ?' ,param , function(err, result){
+if(err) console.log('Error in updating last_dvp_sent' + err);
+
+});
+
+}
 
 
 module.exports = router;

@@ -42,7 +42,7 @@ var endDate = new Date(moment().add(duration, 'days').endOf('day'));
    //console.log("search vehicle request received");
 
   
-db.query('select record_id,owner,registration_no,company_name ,company_id, ft_exp_dt, ft_exp_dt_txt, npa_exp_dt, npa_exp_dt_txt, tax_exp_dt, tax_exp_dt_txt,  npb_exp_dt, npb_exp_dt_txt from atms.tblVehicle where (tax_exp_dt >= ? and tax_exp_dt <= ?) or (ft_exp_dt >= ? and ft_exp_dt <= ?) or (npa_exp_dt >= ? and npa_exp_dt <= ?) or (npb_exp_dt >= ? and npb_exp_dt <= ?)   order by company_id;',[startDate,endDate,startDate,endDate,startDate,endDate,startDate,endDate], function(err, result) {
+db.query('select last_sms_dvp , sms_alert_no, sms_alert_no2, record_id,owner,registration_no,company_name ,company_id, ft_exp_dt, ft_exp_dt_txt, npa_exp_dt, npa_exp_dt_txt, tax_exp_dt, tax_exp_dt_txt,  npb_exp_dt, npb_exp_dt_txt from atms.vw_companyvehicle where (tax_exp_dt >= ? and tax_exp_dt <= ?) or (ft_exp_dt >= ? and ft_exp_dt <= ?) or (npa_exp_dt >= ? and npa_exp_dt <= ?) or (npb_exp_dt >= ? and npb_exp_dt <= ?)   order by company_id;',[startDate,endDate,startDate,endDate,startDate,endDate,startDate,endDate], function(err, result) {
 if (err)  {
 	  console.log(err);
   resp.status = "E";
